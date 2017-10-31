@@ -1,16 +1,36 @@
+// Individual channels
 var c1, c2;
+// 2 main gradient colors
+var color1, color2;
+var gradientColors = {
+	'top': [
+    	[200, 102, 0],
+    	[71, 133, 232]
+	],
+	'bottom': [
+    	[0, 102, 153],
+    	[255, 255, 255]
+	]
+}
+var gradientIndex;
+
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
     // Define colors
-    c1 = color(200, 102, 0);
-    c2 = color(0, 102, 153);
-    noLoop();
+    gradientIndex = 0
+    c1 = gradientColors['top'][gradientIndex]
+    c2 = gradientColors['bottom'][gradientIndex]
+    color1 = color(c1[0], c1[1], c1[2]);
+    color2 = color(c2[0], c1[1], c1[2]);
+    frameRate(2);
 }
 
 function draw() {
     // Foreground
-    setGradient(0, 0, width, height, c2, c1);
+    color1 = varyChannels(c1);
+    color2 = varyChannels(c2);
+    setGradient(0, 0, width, height, color2, color1);
 }
 
 function setGradient(x, y, w, h, c1, c2) {
@@ -24,6 +44,13 @@ function setGradient(x, y, w, h, c1, c2) {
     }
 }
 
+function varyChannels(colorArray) {
+	for (var i = 0; i < colorArray.length; i++) {
+		colorArray[i] = colorArray[i] + random(-3, 3);
+	}
+	return color(colorArray[0], colorArray[1], colorArray[2]);
+}
+
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
@@ -32,9 +59,15 @@ function keyPressed() {
 
     switch (key) {
         case 'F':
-            console.log("meh");
             var fs = fullscreen();
             fullscreen(!fs);
-            break;
+            break; 
+        case 'C':
+        	gradientIndex++;
+        	if (gradientIndex == gradientColors['top'].length) {
+        		gradientIndex = 0;
+        	}
+     		c1 = gradientColors['top'][gradientIndex]
+    		c2 = gradientColors['bottom'][gradientIndex]       	
     }
 }
