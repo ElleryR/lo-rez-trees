@@ -17,8 +17,8 @@ var gradientIndex;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
-    // Define colors
     gradientIndex = 0
+    trees = []
     c1 = gradientColors['top'][gradientIndex]
     c2 = gradientColors['bottom'][gradientIndex]
     color1 = color(c1[0], c1[1], c1[2]);
@@ -28,15 +28,23 @@ function setup() {
 }
 
 function draw() {
-	if (frameCount % 10 == 0) {
-		color1 = varyChannels(c1);
-        color2 = varyChannels(c2);
-        setGradient(0, 0, width, height, color2, color1);
-	}
-    if (frameCount % 5 == 0) {
-		stroke(color(255, 255, 255));
-  		branchRecursive(random(windowWidth), windowHeight, -90, 5);
+	color1 = varyChannels(c1);
+  color2 = varyChannels(c2);
+  setGradient(0, 0, width, height, color2, color1);
+  for (var i=0; i<trees.length; i++) {
+    trees[i].display();
+    trees[i].fade();
+    if (trees[i].alpha == 0) {
+      trees.splice(i, 1);
     }
+  }
+  if (frameCount % 5 == 0) {
+    randomChance = int(random(2));
+    console.log(randomChance);
+    if (randomChance == 1) {
+      trees.push(new recursiveTree())
+    }
+  }
 }
 
 function setGradient(x, y, w, h, c1, c2) {
@@ -78,43 +86,43 @@ function keyPressed() {
     }
 }
 
-function mouseClicked(){
-	stroke(color(255, 255, 255));
-  	branchRecursive(random(windowWidth), windowHeight, -90, 5);
+
+
+function recursiveTree(){
+  this.branches = [];
+  this.branchRecursive(random(windowWidth), windowHeight, -90, 5);
+  this.alpha = 255
+
+  this.display = function() {
+    stroke(color(255, 255, 255, this.alpha));
+    strokeWeight(4);
+    for (var i=0; i< this.branches.length; i++) {
+      branch = this.branches[i];
+      line(branch[0], branch[1], branch[2], branch[3])
+    }
+  };
 }
 
-
-function branchRecursive(x, y, angle, numBranches){
+recursiveTree.prototype.branchRecursive = function(x, y, angle, numBranches){
   //we want to stop recursing if our iterator is below 0
-  if (numBranches <= 0) return;
+  if (numBranches <= 0) {
+    return;
+  }
   
   //try replacing random with noise
   //not comfortable with sin and cos yet? No problem! Try using rotate()
   //instead.
-  var x2 = x + (cos(radians(angle)) * numBranches * 10.0) + random(-10,10);
-  var y2 = y + (sin(radians(angle)) * numBranches * 10.0) + random(-10,10);
-  line(x, y, x2, y2);
+  var x2 = x + (cos(radians(angle)) * numBranches * 25.0) + random(-10,10);
+  var y2 = y + (sin(radians(angle)) * numBranches * 25.0) + random(-10,10);
+  this.branches.push([x, y, x2, y2]);
   
   //we recurse on both side so that we have an even number of
   //branches.  What if we didn't have a symmetrical tree?
-  branchRecursive(x2, y2, angle - 20, numBranches - 1);
-  branchRecursive(x2, y2, angle + 20, numBranches - 1);
+  this.branchRecursive(x2, y2, angle - 20, numBranches - 1);
+  this.branchRecursive(x2, y2, angle + 20, numBranches - 1);
 }
 
-/**
- * What if you chose a random branch left or right?
- * based on the random boolean example in class.
- * See week04 example as reference.
- * this function returns either our right side or left side coords
- * as a vector.  It should be randomly choosing which side;
- */
-function randomLeftOrRight(x1,y1, x2, y2){
-  var bTruth = Math.round(random(1));
-  if(bTruth == 1){
-    var vecLeft = createVector(x1,y1);
-    return vecLeft;
-  } else {
-    var vecRight = createVector(x2,y2);
-    return vecRight;
-  }
+recursiveTree.prototype.fade = function(){
+  this.alpha = this.alpha - 3;
 }
+
