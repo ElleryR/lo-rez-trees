@@ -95,7 +95,7 @@ function varyChannels(colorArray) {
     // }
 
     let addr = 0.001;
-    let noiseScale = 60; //increase the spread of color change
+    let noiseScale = 80; //increase the spread of color change
     phase += addr * dir;
     if (phase > 1000 || phase < 0) {
         dir *= 01;
