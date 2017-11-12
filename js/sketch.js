@@ -31,7 +31,6 @@ function setup() {
     color2 = color(c2[0], c1[1], c1[2]);
     setGradient(0, 0, width, height, color2, color1);
     frameRate(240);
-
     addNewTree();
 }
 
@@ -44,8 +43,6 @@ function draw() {
     setGradient(0, 0, width, height, color2, color1);
 
     for (var i = 0; i < trees.length; i++) {
-        trees[i].update();
-        trees[i].update();
         trees[i].update();
         trees[i].display();
 
@@ -68,11 +65,9 @@ function draw() {
 }
 
 function addNewTree() {
-
     new_tree = new recursiveTree();
     trees.push(new_tree);
     tree_start_points.push(new_tree.dest_branches[0][0]);
-
 }
 
 function setGradient(x, y, w, h, c1, c2) {
@@ -89,26 +84,16 @@ function setGradient(x, y, w, h, c1, c2) {
 var phase = 0;
 var dir = 1;
 function varyChannels(colorArray) {
-
-    // for (var i = 0; i < colorArray.length; i++) {
-    //     colorArray[i] = colorArray[i] + random(-3, 3);
-    // }
-
     let addr = 0.001;
     let noiseScale = 80; //increase the spread of color change
     phase += addr * dir;
     if (phase > 1000 || phase < 0) {
         dir *= 01;
     }
-
     let newR = int(colorArray[0] + ((noise(phase)*noiseScale) - noiseScale/2));
-
     let newG = int(colorArray[1] + ((noise(phase* 1.1)*noiseScale) - noiseScale/2));
-
     let newB = int(colorArray[2] + ((noise(phase* 1.4)*noiseScale) - noiseScale/2));
-
     return color(newR, newG, newB);
-    // return color(colorArray[0], colorArray[1], colorArray[2]);
 }
 
 
@@ -150,8 +135,6 @@ function recursiveTree() {
     this.dest_x = 0; //the final x location of the branch
     this.dest_y = 0; //the final y location "   "    " "
 
-	this.nodes = [];
-
     this.display = function() {
 
         stroke(color(255, 255, 255, this.alpha));
@@ -159,7 +142,6 @@ function recursiveTree() {
         for (var i = 0; i < this.branches.length; i++) {
             branch = this.branches[i];
             line(branch[0], branch[1], branch[2], branch[3]);
-
             if (branch[4] == true) {
                 noFill();
                 strokeWeight(3);
@@ -169,28 +151,17 @@ function recursiveTree() {
                 rect(branch[2], branch[3], 1, 2);
             }
         }
-
-		// for (var i = 0; i < this.nodes.length; i++) {
-		// 	node = this.nodes[i];
-		// 	rect(node[2], node[3], 1, 2);
-        //
-		// }
-
     };
 
     this.set_new_branch = function() {
 
         if (this.dest_branches.length > 0) {
-
             new_branch = this.dest_branches.shift();
             this.dest_x = new_branch[2];
             this.dest_y = new_branch[3];
             new_branch[2] = new_branch[0];
             new_branch[3] = new_branch[1];
-
             this.branches.push(new_branch);
-			this.nodes.push(new_branch);
-
         }
 
     };
@@ -205,19 +176,17 @@ function recursiveTree() {
 
         var last_index = this.branches.length - 1
         if (this.branches[last_index][2] < this.dest_x) {
-            this.branches[last_index][2] = this.branches[last_index][2] + 0.25;
+            this.branches[last_index][2] = this.branches[last_index][2] + 0.5;
         } else if (this.branches[last_index][2] > this.dest_x) {
-            this.branches[last_index][2] = this.branches[last_index][2] - 0.25;
+            this.branches[last_index][2] = this.branches[last_index][2] - 0.5;
         }
 
-        if (this.branches[last_index][3] <= this.dest_y) {
-            this.branches[last_index][3] = this.branches[last_index][3] + 0.25;
+        if (this.branches[last_index][3] < this.dest_y) {
+            this.branches[last_index][3] = this.branches[last_index][3] + 0.5;
         } else if (this.branches[last_index][3] > this.dest_y) {
-            this.branches[last_index][3] = this.branches[last_index][3] - 0.25;
+            this.branches[last_index][3] = this.branches[last_index][3] - 0.5;
         }
-
-        if (int(this.dest_x) == int(this.branches[last_index][2]) && int(this.dest_y) == int(this.branches[last_index][3])) {
-
+        if (Math.round(this.dest_x) == Math.round(this.branches[last_index][2]) && Math.round(this.dest_y) == Math.round(this.branches[last_index][3])) {
             if (this.dest_branches.length > 0) {
                 this.set_new_branch();
 				//happy mistake
@@ -231,39 +200,25 @@ function recursiveTree() {
 
     };
 
-	//i suppose this is where we make the branches that make up a tree
     this.branchRecursive = function(x, y, angle, numBranches) {
-
-        //we want to stop recursing if our iterator is below 0
         if (numBranches <= 0) {
-
             return;
-
         }
 
-        //try replacing random with noise
-        //not comfortable with sin and cos yet? No problem! Try using rotate()
-        //instead.
         var x2 = x + (cos(radians(angle)) * numBranches * 25.0) + random(-10, 10);
-        var x2 = float(parseFloat(x2).toFixed(2))
-
+        var x2 = Math.round(parseFloat(x2).toFixed(2))
         var y2 = y + (sin(radians(angle)) * numBranches * 25.0) + random(-10, 10);
-        var y2 = float(parseFloat(y2).toFixed(2))
+        var y2 = Math.round(parseFloat(y2).toFixed(2))
 
         var terminal = numBranches == 1;
-		//we push the beginning and end points of the tree branches into this array
         this.dest_branches.push([x, y, x2, y2, terminal]);
-
-        //we recurse on both side so that we have an even number of
-        //branches.  What if we didn't have a symmetrical tree?
         this.branchRecursive(x2, y2, angle - 20, numBranches - 1);
         this.branchRecursive(x2, y2, angle + 20, numBranches - 1);
 
     }
 
     new_x = determineNewTreeX(0, windowWidth);
-
-    this.branchRecursive(float(parseFloat(new_x).toFixed(2)), float(parseFloat(windowHeight).toFixed(2)), -90, floor(random(3, 6)));
+    this.branchRecursive(Math.round(parseFloat(new_x).toFixed(2)), Math.round(parseFloat(windowHeight).toFixed(2)), -90, floor(random(3, 6)));
 
 }
 
