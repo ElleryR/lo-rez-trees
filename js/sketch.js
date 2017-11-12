@@ -18,13 +18,14 @@ function setup() {
     createCanvas(windowWidth, windowHeight);
     gradientIndex = 0
     trees = []
+    tree_start_points = [];
     c1 = gradientColors['top'][gradientIndex]
     c2 = gradientColors['bottom'][gradientIndex]
     color1 = color(c1[0], c1[1], c1[2]);
     color2 = color(c2[0], c1[1], c1[2]);
     setGradient(0, 0, width, height, color2, color1);
     frameRate(240);
-    trees.push(new recursiveTree())
+    addNewTree();
 }
 
 function draw() {
@@ -48,9 +49,15 @@ function draw() {
   if (frameCount % 240 == 0) {
     randomChance = int(random(3));
     if (randomChance == 1) {
-      trees.push(new recursiveTree())
+      addNewTree();
     }
   }
+}
+
+function addNewTree(){
+  new_tree = new recursiveTree()
+  trees.push(new_tree)
+  tree_start_points.push(new_tree.dest_branches[0][0])
 }
 
 function setGradient(x, y, w, h, c1, c2) {
@@ -90,6 +97,31 @@ function keyPressed() {
      		c1 = gradientColors['top'][gradientIndex]
     		c2 = gradientColors['bottom'][gradientIndex]       	
     }
+}
+
+function determineNewTreeX(startX, endX){
+  dist = endX - startX;
+  leftArea = [startX, (startX + (dist/2))]
+  rightArea = [(endX - (dist/2)), endX]
+  leftCount = 0;
+  rightCount = 0;
+  for (var i=0; i< this.tree_start_points.length; i++) {
+    starting_point = tree_start_points[i];
+    if (starting_point >= leftArea[0] && starting_point <= leftArea[1]) {
+      leftCount++;
+    } else if (starting_point >= rightArea[0] && starting_point <= rightArea[1]){
+      rightCount++;
+    }
+  }
+  if (leftCount == 0){
+    return random(leftArea[0], leftArea[1]);
+  } else if (rightCount == 0) {
+    return random(rightArea[0], rightArea[1]);
+  } else if (leftCount > rightCount){
+    return determineNewTreeX(rightArea[0], rightArea[1])
+  } else {
+    return determineNewTreeX(leftArea[0], leftArea[1])
+  }
 }
 
 
@@ -165,7 +197,8 @@ function recursiveTree(){
   this.branchRecursive(x2, y2, angle + 20, numBranches - 1);
   }
 
-  this.branchRecursive(float(parseFloat(random(windowWidth)).toFixed(2)), float(parseFloat(windowHeight).toFixed(2)), -90, 5);
+  new_x = determineNewTreeX(0, windowWidth);
+  this.branchRecursive(float(parseFloat(new_x).toFixed(2)), float(parseFloat(windowHeight).toFixed(2)), -90, 5);
 
 }
 
