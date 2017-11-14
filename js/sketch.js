@@ -48,14 +48,14 @@ function draw() {
 
         trees[i].display();
 
-        if (frameCount % 20 == 0) {
+        if (frameCount % 30 == 0) {
             trees[i].fade();
         }
-        if (trees[i].alpha == -100) {
+        if (trees[i].alpha == -80) {
             trees.splice(i, 1);
             console.log('removed tree');
         }
-        if (trees[i].alpha < 80) {
+        if (trees[i].alpha < 100) {
             trees[i].moveDown();
         }
 
@@ -135,9 +135,6 @@ function determineNewTreeX(startX, endX) {
 
 
 function recursiveTree() {
-    var breeze = 0.0;
-    var breezeAddr = 0.001;
-    this.nodes = [];
 
     this.branches = [];
     this.dest_branches = []; //hold the start and end points of each branch as it is made
@@ -151,7 +148,7 @@ function recursiveTree() {
     this.nodeAlpha = 255;
 
     this.moveDown = function() {
-        this.move = this.move + 0.0005;
+        //this.move = this.move + 0.0005; //this line moves the trees
         this.nodeRaise = this.nodeRaise - 0.2;
         this.nodeX = this.nodeX + 0.05;
         //this.nodeAlpha = this.nodeAlpha - 2;
