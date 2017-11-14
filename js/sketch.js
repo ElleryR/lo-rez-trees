@@ -3,7 +3,7 @@ var c1, c2;
 
 // 2 main gradient colors
 var color1, color2;
-
+var time;
 var gradientColors = {
     'top': [
         [200, 102, 0],
@@ -35,6 +35,7 @@ function setup() {
 }
 
 function draw() {
+
     //if (frameCount % 120 == 0) {
         color1 = varyChannels(c1);
         color2 = varyChannels(c2);
@@ -44,13 +45,18 @@ function draw() {
 
     for (var i = 0; i < trees.length; i++) {
         trees[i].update();
+
         trees[i].display();
 
-        if (frameCount % 60 == 0) {
+        if (frameCount % 20 == 0) {
             trees[i].fade();
         }
-        if (trees[i].alpha == 0) {
+        if (trees[i].alpha == -100) {
             trees.splice(i, 1);
+            console.log('removed tree');
+        }
+        if (trees[i].alpha < 80) {
+            trees[i].moveDown();
         }
 
     }
@@ -84,15 +90,16 @@ function setGradient(x, y, w, h, c1, c2) {
 var phase = 0;
 var dir = 1;
 function varyChannels(colorArray) {
-    let addr = 0.001;
+    let addr = 0.0005;
     let noiseScale = 80; //increase the spread of color change
     phase += addr * dir;
     if (phase > 1000 || phase < 0) {
-        dir *= 01;
+        dir *= -1;
     }
     let newR = int(colorArray[0] + ((noise(phase)*noiseScale) - noiseScale/2));
     let newG = int(colorArray[1] + ((noise(phase* 1.1)*noiseScale) - noiseScale/2));
     let newB = int(colorArray[2] + ((noise(phase* 1.4)*noiseScale) - noiseScale/2));
+
     return color(newR, newG, newB);
 }
 
@@ -128,12 +135,40 @@ function determineNewTreeX(startX, endX) {
 
 
 function recursiveTree() {
+    var breeze = 0.0;
+    var breezeAddr = 0.001;
+    this.nodes = [];
 
     this.branches = [];
     this.dest_branches = []; //hold the start and end points of each branch as it is made
     this.alpha = 255;
     this.dest_x = 0; //the final x location of the branch
     this.dest_y = 0; //the final y location "   "    " "
+    this.move = 1;
+
+    this.nodeRaise = 1;
+    this.nodeX = 1;
+    this.nodeAlpha = 255;
+
+    this.moveDown = function() {
+        this.move = this.move + 0.0005;
+        this.nodeRaise = this.nodeRaise - 0.2;
+        this.nodeX = this.nodeX + 0.05;
+        //this.nodeAlpha = this.nodeAlpha - 2;
+    }
+
+    this.sway = function() {
+        for (var i= 2; i < this.branches.length; i++) {
+            var b = this.branches[i];
+            var bMinus = this.branches[i-1];
+
+            b[0] = b[0] + (noise(time + TWO_PI) - 0.5);
+            b[1] = b[1] + (noise(time - TWO_PI) - 0.5);
+            bMinus[3] = bMinus[3] + (noise(time + TWO_PI) - 0.5);
+            bMinus[2] = bMinus[2] + (noise(time + TWO_PI) - 0.5);
+
+        }
+    }
 
     this.display = function() {
 
@@ -141,17 +176,28 @@ function recursiveTree() {
         strokeWeight(4);
         for (var i = 0; i < this.branches.length; i++) {
             branch = this.branches[i];
+
+            push();
+            scale(1.0,this.move);
             line(branch[0], branch[1], branch[2], branch[3]);
+            pop();
             if (branch[4] == true) {
                 noFill();
                 strokeWeight(3);
-                ellipse( branch[2], branch[3]-2, 8);
+
+                push();
+                scale(1.0, this.move);
+                ellipse(branch[2], branch[3]-3, 8);
+                pop();
+
             } else {
-                fill(255);
-                rect(branch[2], branch[3], 1, 2);
+                fill(255, this.nodeAlpha);
+
+                rect(branch[2]+ (this.nodeX * branch[5]), branch[3] + (this.nodeRaise * branch[6]), 1, 2);
             }
         }
     };
+
 
     this.set_new_branch = function() {
 
@@ -169,12 +215,11 @@ function recursiveTree() {
     this.update = function() {
 
         if (this.branches.length == 0) {
-
             this.set_new_branch();
-
         }
 
-        var last_index = this.branches.length - 1
+        var last_index = this.branches.length - 1;
+
         if (this.branches[last_index][2] < this.dest_x) {
             this.branches[last_index][2] = this.branches[last_index][2] + 0.5;
         } else if (this.branches[last_index][2] > this.dest_x) {
@@ -186,6 +231,7 @@ function recursiveTree() {
         } else if (this.branches[last_index][3] > this.dest_y) {
             this.branches[last_index][3] = this.branches[last_index][3] - 0.5;
         }
+
         if (Math.round(this.dest_x) == Math.round(this.branches[last_index][2]) && Math.round(this.dest_y) == Math.round(this.branches[last_index][3])) {
             if (this.dest_branches.length > 0) {
                 this.set_new_branch();
@@ -205,25 +251,28 @@ function recursiveTree() {
             return;
         }
 
-        var x2 = x + (cos(radians(angle)) * numBranches * 25.0) + random(-10, 10);
+        var x2 = x + (cos(radians(angle)) * numBranches * 20.0) + random(-10, 10);
         var x2 = Math.round(parseFloat(x2).toFixed(2))
-        var y2 = y + (sin(radians(angle)) * numBranches * 25.0) + random(-10, 10);
+        var y2 = y + (sin(radians(angle)) * numBranches * 20.0) + random(-10, 10);
         var y2 = Math.round(parseFloat(y2).toFixed(2))
 
         var terminal = numBranches == 1;
-        this.dest_branches.push([x, y, x2, y2, terminal]);
-        this.branchRecursive(x2, y2, angle - 20, numBranches - 1);
-        this.branchRecursive(x2, y2, angle + 20, numBranches - 1);
+        var nodeXSpeed= random(-1, 1);
+        var nodeYSpeed = random(0.01, 1);
+        this.dest_branches.push([x, y, x2, y2, terminal, nodeXSpeed,nodeYSpeed]);
+        this.branchRecursive(x2, y2, angle - 25, numBranches - 1);
+        this.branchRecursive(x2, y2, angle + 25, numBranches - 1);
 
     }
 
     new_x = determineNewTreeX(0, windowWidth);
-    this.branchRecursive(Math.round(parseFloat(new_x).toFixed(2)), Math.round(parseFloat(windowHeight).toFixed(2)), -90, floor(random(3, 6)));
+
+    this.branchRecursive(Math.round(parseFloat(new_x).toFixed(2)), Math.round(parseFloat(windowHeight).toFixed(2)), -90, floor(random(3, 8)));
 
 }
 
 recursiveTree.prototype.fade = function() {
-    this.alpha = this.alpha - 3;
+    this.alpha = this.alpha - 1;
 
 }
 
